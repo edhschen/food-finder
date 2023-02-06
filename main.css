@@ -19,16 +19,21 @@ body {
 circle {
     position: relative;
 }
+circle.circle-shop { 
+    opacity: 0.2;
+    fill: gray;
+    z-index: 0;
+}
 circle[selected] {
-    opacity: 1;
+    opacity: 1 !important;
     z-index: 3;
     fill: #e7ce11 !important;
     stroke: #272727;
-    stroke-width: 2px;
+    stroke-width: 2px !important;
     cursor: default;
 }
 circle[highlighted] {
-    fill: steelblue !important;
+    fill: steelblue;
     opacity: 0.7;
     stroke: #272727;
     stroke-width: 1px;
@@ -45,19 +50,19 @@ path.zones {
 }
 
 #shop-results {
-    padding-top: 1rem;
-    padding-right: 5px;
+    padding: 1rem 1rem 0 1rem;
     overflow: scroll;
     flex: 1;
 }
-#filter {
-    padding-top: 2rem;
+#search-results {
+    margin: 0 1rem 0 1rem;
+}
+#filters > div {
+    margin-top: 1rem;
 }
 #sidebar {
     width: 30%;
-    margin: 3rem;
-    margin-right: calc(3rem - 5px);
-    margin-bottom: 1rem;
+    margin: 3rem 2rem 1rem 2rem;
     display: flex;
     flex-direction: column;
 }
@@ -92,9 +97,9 @@ a {
     /* border: 2px solid transparent; */
     margin-bottom: 1rem;
 }
-/* .shop-result:hover {
-    box-shadow: inset 2px 2px 5px 0px rgba(0,0,0,0.1);
-} */
+.shop-result:hover {
+    transform: translate(-5px,-5px);
+}
 .shop-result p.text-content {
     font-size: 0.8rem;
     line-height: 1rem;
@@ -117,15 +122,8 @@ a {
 em {
     font-style: italic;
 }
-#sidebar > div:not(:first-child) {
-    margin-top: 1rem;
-}
 .form-control:focus, .form-select:focus {
     box-shadow: none;
-} 
-.form-select, .form-control {
-    width: fill-available;
-    width: -webkit-fill-available;
 }
 .select-units, .input-units {
     background-color: white;
@@ -137,7 +135,6 @@ em {
 .input-inline {
     display: flex;
     gap: 1rem;
-    margin-top: 1rem;
 }
 .input-group-text i {
     color: black;
@@ -150,4 +147,33 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
     margin: 0 auto;
     margin-top: 1rem;
     font-size: 0.85rem;
+}
+.tooltip {
+    background-color: white;
+    /* padding: 0.25rem 0.5rem; */
+    border-radius: 0.25rem;
+    /* opacity: 0.9 !important; */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.tooltip .text-elements {
+    margin: 0;
+    padding-right: 0.5rem;
+}
+.tooltip .text-main {
+    font-size: 1rem;
+    margin-bottom: 0;
+    line-height: 1rem;
+}  
+.tooltip .text-content {
+    font-size: 0.7rem;
+    line-height: 1rem;
+}
+.tooltip .img-wrapper {
+    width: 40px;
+    height: 40px
+}
+.tooltip img {
+    border-radius: 0.25rem 0 0 0.25rem;
 }

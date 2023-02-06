@@ -109,6 +109,25 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
         .append("g")
         .attr("id", "bottom_layer")
     
+    tip = d3.tip().attr("class", "tooltip").html((event, d) => d);
+    tip.direction("e")
+    tip.offset([-10, 10])
+    generate_tooltip = (event, d) => {
+        tip.show(event, `
+        <div class="img-wrapper">
+            ${d.image_url ?'<img src="' + d.image_url + '"/>':""}
+        </div>
+        <div class="text-elements">
+            <p class="text-main">${d.name}</p>
+            <p class="text-content">
+                <em>Rating</em>: ${d.rating} <i class="fa-solid fa-star"></i> (${d.review_count}) <em style="margin-left: 0.25rem;">Price</em>: ${"$".repeat(d.price) || "No Data"}
+            </p>
+        </div>
+        `)
+    }
+
+    svg.call(tip);
+
     // populate shop circles
     dots = svg
         .selectAll("circle")
@@ -116,14 +135,13 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
         .enter()
         .append("circle")
         .attr("r", Math.max(map.getZoom()**2/25, 3))
-        .attr("opacity", 0.2)
-        .style("fill", "gray")
-        .style("z-index", 0)
-        .attr("class", d => d.alias)
+        .attr("class", d => d.alias + " circle-shop")
         .on("mouseover", function(event, d){
+            generate_tooltip(event, d)
             d3.select(this).attr("selected", "")
         })
         .on("mouseout", function(event, d){
+            tip.hide(d)
             if (!d['pinned']) {
                 d3.select(this).attr("selected", null)
             }
@@ -140,29 +158,6 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
         })
 
     focus_data = data.slice(0,30)
-    
-    // populate top 30 results 
-    d3.select("#shop-results")
-        .selectAll("div")
-        .data(focus_data)
-        .enter()
-        .append("div")
-        .attr("class", "shop-result")
-        .html(d => `
-        <div class="img-wrapper">
-            <img src="${d.image_url}">
-        </div>
-        <div class="text-elements">
-            <p class="text-main">${d.name}</p>
-            <p class="text-content">
-                <em>Rating</em>: ${d.rating} <i class="fa-solid fa-star"></i> (${d.review_count}) <em style="margin-left: 0.5rem;">Price</em>: ${"$".repeat(d.price) || "No Data"}
-                <br>${d.address.join(" ")}
-                <br><a href="${d.url}">Yelp Review Link</a>
-            </p>
-        </div>
-        `)
-
-    // test_circle = 
 
     // drag utility function for zone circles
     drag_utility = d3.drag()
@@ -216,6 +211,7 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
         .attr("fill", "steelblue")
         .style("opacity", 0.7)
 
+    // event listeners for zone updates
     d3.select("#zone_1_range")
         .on('change', function(){
             update = d3.select(this).property("value") || 15000;
@@ -291,7 +287,7 @@ function update_intersection() {
     highlighted_data = []
     dots.attr("highlighted", null)
     console.time("find shops")
-    
+
     dots.filter(d => {
             if (bounds[1][0] <= d.coordinates[0] && d.coordinates[0] <= bounds[0][0] && 
                 bounds[1][1] <= d.coordinates[1] && d.coordinates[1] <= bounds[0][1]){
@@ -310,8 +306,11 @@ function update_intersection() {
 
     
     highlighted_data.sort((a,b) => {
-            return b.rating - a.rating || b.review_count - a.review_count
+            a_score = (4 * 20 + a.rating * a.review_count) / (20 + a.review_count)
+            b_score = (4 * 20 + b.rating * b.review_count) / (20 + b.review_count)
+            return b_score - a_score
         })
+    // console.log(highlighted_data)
 
     console.timeEnd("find shops")
 
@@ -341,10 +340,11 @@ function update_intersection() {
         `)
         .on("mouseover", function(event, d){
             d3.select("." + d.alias).attr("selected", "")
+            d3.select("." + d.alias).raise()
         })
         .on("mouseout", function(event, d){
             if (!d['pinned']) {
-                d3.select(this).attr("selected", null)
+                d3.select("." + d.alias).attr("selected", null)
             }
         })
 

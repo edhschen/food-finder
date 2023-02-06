@@ -6,6 +6,7 @@
 
         <script src='https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js'></script>
         <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="https://unpkg.com/d3-v6-tip@1.0.6/build/d3-v6-tip.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous" defer></script>
         <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
 
@@ -27,37 +28,39 @@
         <h1>CS 448B <span style="opacity: 0.6">Assignment 3 Example</span></h1>
         <div id="map"></div>
         <div id="sidebar">
-            <div class="input-group">
-                <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-                <input type="text" class="form-control" placeholder="Search for a Shop" aria-describedby="basic-addon2">
-            </div>
-
-            <div class="input-group input-group-sm" id="zone-ranges">
-                <span class="input-group-text" id="">Zone Ranges</span>
-                <input type="number" class="form-control" value=15000 id="zone_1_range">
-                <span class="input-group-text select-units">meters</span>
-                <input type="number" class="form-control" value=15000 id="zone_2_range">
-                <span class="input-group-text select-units">meters</span>
-            </div>
-
-            <div id="filters">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text" id="">Category Filter</span>
-                    <select class="form-select" id="select-category">
-                        <option selected value=""> Choose an option </option>
-                    </select>
+            <div id="search-results">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" class="form-control" placeholder="Search for a Shop" aria-describedby="basic-addon2">
                 </div>
-                
-                <div class="input-inline">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text" id="">Ratings</span>
-                        <input type="number" class="form-control" placeholder="Any">
-                        <span class="input-group-text input-units"><i class="fa-regular fa-star"></i></span>
+
+                <div id="filters">
+                    <div class="input-group input-group-sm" id="zone-ranges">
+                        <span class="input-group-text" id="">Zone Ranges</span>
+                        <input type="number" class="form-control" value=15000 id="zone_1_range">
+                        <span class="input-group-text select-units">meters</span>
+                        <input type="number" class="form-control" value=15000 id="zone_2_range">
+                        <span class="input-group-text select-units">meters</span>
                     </div>
+
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text" id="">Price</span>
-                        <input type="number" class="form-control" placeholder="Any">
-                        <span class="input-group-text input-units">$</span>
+                        <span class="input-group-text" id="">Category Filter</span>
+                        <select class="form-select" id="select-category">
+                            <option selected value=""> Choose an option </option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-inline">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text" id="">Ratings</span>
+                            <input type="number" class="form-control" placeholder="Any">
+                            <span class="input-group-text input-units"><i class="fa-regular fa-star"></i></span>
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text" id="">Price</span>
+                            <input type="number" class="form-control" placeholder="Any">
+                            <span class="input-group-text input-units">$</span>
+                        </div>
                     </div>
                 </div>
             </div>
