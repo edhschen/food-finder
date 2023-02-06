@@ -75,7 +75,7 @@ var svg = d3
     .style("position", "absolute")
     .style("z-index", 2);
 
-var data, dots, categories, zones
+var output_data, data, dots, categories, zones
 d3.dsv(",", "asst3_yelp.csv", function(d){
     return {
         alias: d.alias,
@@ -92,8 +92,12 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
     }
 }).then(function(output_data){
     data = output_data
+    this.output_data = output_data
     console.log(data)
-    categories = [...new Set (data.map(i => i.categories).flat(1))]
+
+    categories = [...new Set (data.map(i => i.categories).flat(1))].map(x => {return {"value": x, "count": data.filter(y => y.categories.includes(x)).length}})
+    categories = categories.filter(x => x.count > 10).sort((a,b) => b.count - a.count)
+    categories.unshift({"value": "", "count": 0})
     console.log(categories)
 
     // populate unique categories
@@ -102,13 +106,14 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
         .data(categories)
         .enter()
         .append("option")
-        .text(function(d) {return d;})
-        .attr("value", function(d) {return d;})
+        .text(function(d) {return d.value;})
+        .attr("value", function(d) {return d.value;})
 
     bottom_layer = svg
         .append("g")
         .attr("id", "bottom_layer")
     
+    // generate tooltip template
     tip = d3.tip().attr("class", "tooltip").html((event, d) => d);
     tip.direction("e")
     tip.offset([-10, 10])
@@ -123,7 +128,7 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
                 <em>Rating</em>: ${d.rating} <i class="fa-solid fa-star"></i> (${d.review_count}) <em style="margin-left: 0.25rem;">Price</em>: ${"$".repeat(d.price) || "No Data"}
             </p>
         </div>
-        `)
+        `).attr("tooltip-visible", "")
     }
 
     svg.call(tip);
@@ -141,7 +146,7 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
             d3.select(this).attr("selected", "")
         })
         .on("mouseout", function(event, d){
-            tip.hide(d)
+            tip.hide(d).attr("tooltip-visible", null)
             if (!d['pinned']) {
                 d3.select(this).attr("selected", null)
             }
@@ -156,8 +161,6 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
                 console.log(d['pinned'])
             }
         })
-
-    focus_data = data.slice(0,30)
 
     // drag utility function for zone circles
     drag_utility = d3.drag()
@@ -231,9 +234,42 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
     zones = [zone_1, zone_2]
     centers = [center_1, center_2]
 
+    // event listeners for other filters
+    d3.select("#select-category")
+        .on('change', d => filter_handler())
+
+    d3.select("#filter-ratings")
+        .on('change', d => filter_handler())
+        
+    d3.select("#filter-price")
+        .on('change', d => filter_handler())
+
     update_intersection();
     render();
 })
+
+// update visibility of circles based on filters
+function filter_handler() {
+    category = d3.select("#select-category").property("value")
+    ratings = +d3.select("#filter-ratings").property("value")
+    price = +d3.select("#filter-price").property("value")
+
+    if (category || ratings || price) {
+        data = []
+        dots.attr("visible", d => {
+            if ((!ratings || (d.rating >= ratings)) && (!price || (d.price == price)) &&  (!category || d.categories.includes(category))) {
+                data.push(d)
+                return true
+            } else {
+                return false
+            }
+        })
+    } else {
+        data = output_data
+        d3.selectAll("[visible]").attr("visible", null)
+    }
+    update_intersection();
+}
 
 // generate dist circle around lng, lat coordinate in pixels, dist is in meters
 function generate_circle(lng, lat, dist) {
@@ -247,6 +283,7 @@ function generate_circle(lng, lat, dist) {
     return data_circle
 }
 
+// meter distance between two coordinates
 function coord_distance(lat1, lon1, lat2, lon2) {
     var R = 6371000; // Radius of the earth in km
     var dLat = (lat2-lat1) * (Math.PI/180);  // deg2rad below
@@ -256,6 +293,7 @@ function coord_distance(lat1, lon1, lat2, lon2) {
     return R * c; // Distance in m
 }
 
+// offset coordinate by dist in both axis
 function offset_coord(lat, lon, dist){
     var R = 6371000;
     var m = (1 / ((2 * Math.PI/360) * R / 1000)) / 1000;
@@ -289,18 +327,22 @@ function update_intersection() {
     console.time("find shops")
 
     dots.filter(d => {
-            if (bounds[1][0] <= d.coordinates[0] && d.coordinates[0] <= bounds[0][0] && 
-                bounds[1][1] <= d.coordinates[1] && d.coordinates[1] <= bounds[0][1]){
-                    dist_1 = coord_distance(d.coordinates[0], d.coordinates[1], zone_1.property("lat"), zone_1.property("lng"))
-                    if (dist_1 <= zone_1.property("dist")){
-                        dist_2 = coord_distance(d.coordinates[0], d.coordinates[1], zone_2.property("lat"), zone_2.property("lng"))
-                        if (dist_2 <= zone_2.property("dist")){
-                            highlighted_data.push(d)
-                            return true;
+            if (data.includes(d)){
+                if (bounds[1][0] <= d.coordinates[0] && d.coordinates[0] <= bounds[0][0] && 
+                    bounds[1][1] <= d.coordinates[1] && d.coordinates[1] <= bounds[0][1]){
+                        dist_1 = coord_distance(d.coordinates[0], d.coordinates[1], zone_1.property("lat"), zone_1.property("lng"))
+                        if (dist_1 <= zone_1.property("dist")){
+                            dist_2 = coord_distance(d.coordinates[0], d.coordinates[1], zone_2.property("lat"), zone_2.property("lng"))
+                            if (dist_2 <= zone_2.property("dist")){
+                                highlighted_data.push(d)
+                                return true;
+                            }
                         }
-                    }
+                }
+                return false
+            } else {
+                return false
             }
-            return false
         })
         .attr("highlighted", "")
 

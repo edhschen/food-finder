@@ -38,7 +38,9 @@ circle[highlighted] {
     stroke: #272727;
     stroke-width: 1px;
 }
-
+circle[visible="false"] {
+    visibility: hidden;
+}
 path.zones {
     fill: steelblue;
     opacity: 0.2;
@@ -51,8 +53,12 @@ path.zones {
 
 #shop-results {
     padding: 1rem 1rem 0 1rem;
+    margin-top: 1rem;
     overflow: scroll;
     flex: 1;
+}
+#shop-results::-webkit-scrollbar { 
+    display: none; 
 }
 #search-results {
     margin: 0 1rem 0 1rem;
@@ -159,12 +165,13 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
 }
 .tooltip .text-elements {
     margin: 0;
-    padding-right: 0.5rem;
+    padding-right: 0.7rem;
 }
 .tooltip .text-main {
     font-size: 1rem;
     margin-bottom: 0;
     line-height: 1rem;
+    font-weight: 500;
 }  
 .tooltip .text-content {
     font-size: 0.7rem;
@@ -176,4 +183,7 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
 }
 .tooltip img {
     border-radius: 0.25rem 0 0 0.25rem;
+}
+.tooltip[tooltip-visible] {
+    opacity: 0.8 !important;
 }
