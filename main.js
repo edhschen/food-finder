@@ -304,11 +304,14 @@ function filter_handler() {
             // if there is a search term, sort by relevance
             data = results.filter(d => data.includes(d))
         }
+        opacity = Math.min(Math.max((1 / Math.sqrt(data.length)) * 5 + 0.05, 0.2), 1)
+        dots.style("opacity", opacity)
     } 
     
     // if only search term provided, update visibility based on that
     if (content.length > 0 && !(category || ratings || price)) {
-        dots.attr("visible", d => data.includes(d))
+        opacity = Math.min(Math.max((1 / Math.sqrt(data.length)) * 5 + 0.05, 0.2), 1)
+        dots.style("visible", d => data.includes(d)).attr("opacity", opacity)
     }
 
     // if nothing is populated repopulate everything
