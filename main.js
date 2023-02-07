@@ -244,6 +244,29 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
     d3.select("#filter-price")
         .on('change', d => filter_handler())
 
+    // fuzzy search event listener
+    d3.select("#search-box")
+        .on("change", d => filter_handler())
+
+    {
+        content = d3.select("#search-box").property("value")
+        if (content.length > 0) {
+            const options = {keys: ["name", "address", "categories"]}
+            const fuse = new Fuse(data, options)
+            data = fuse.search(content)
+
+            dots.attr("visible", d => {
+                if (data.includes(d)) {
+                    return true
+                } else {
+                    return false
+                }
+            })
+        } else {
+            filter_handler();
+        }
+    }
+
     update_intersection();
     render();
 })
@@ -253,21 +276,47 @@ function filter_handler() {
     category = d3.select("#select-category").property("value")
     ratings = +d3.select("#filter-ratings").property("value")
     price = +d3.select("#filter-price").property("value")
+    content = d3.select("#search-box").property("value")
 
+    // fuzzy search if search term provided
+    if (content.length > 0) {
+        const options = {keys: ["name", "categories"]}
+        const fuse = new Fuse(output_data, options)
+        results = fuse.search(content).map(x => x.item)
+        data = results
+    }
+    
+    // regular filter if they are populated
     if (category || ratings || price) {
         data = []
         dots.attr("visible", d => {
             if ((!ratings || (d.rating >= ratings)) && (!price || (d.price == price)) &&  (!category || d.categories.includes(category))) {
+                if (content.length > 0 && !results.includes(d)) {
+                    return false
+                }
                 data.push(d)
                 return true
             } else {
                 return false
             }
         })
-    } else {
+        if (content.length > 0) {
+            // if there is a search term, sort by relevance
+            data = results.filter(d => data.includes(d))
+        }
+    } 
+    
+    // if only search term provided, update visibility based on that
+    if (content.length > 0 && !(category || ratings || price)) {
+        dots.attr("visible", d => data.includes(d))
+    }
+
+    // if nothing is populated repopulate everything
+    if (!(category || ratings || price || content)) {
         data = output_data
         d3.selectAll("[visible]").attr("visible", null)
-    }
+    } 
+
     update_intersection();
 }
 
@@ -346,12 +395,16 @@ function update_intersection() {
         })
         .attr("highlighted", "")
 
-    
-    highlighted_data.sort((a,b) => {
-            a_score = (4 * 20 + a.rating * a.review_count) / (20 + a.review_count)
-            b_score = (4 * 20 + b.rating * b.review_count) / (20 + b.review_count)
-            return b_score - a_score
-        })
+    content = d3.select("#search-box").property("value")
+    if (content.length == 0) {
+        highlighted_data.sort((a,b) => {
+                a_score = (4 * 20 + a.rating * a.review_count) / (20 + a.review_count)
+                b_score = (4 * 20 + b.rating * b.review_count) / (20 + b.review_count)
+                return b_score - a_score
+            })
+    } else {
+        highlighted_data = data.filter(d => highlighted_data.includes(d))
+    }
     // console.log(highlighted_data)
 
     console.timeEnd("find shops")
