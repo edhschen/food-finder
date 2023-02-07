@@ -165,6 +165,7 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
     // drag utility function for zone circles
     drag_utility = d3.drag()
         .on("drag", function(event, d){
+            console.time("light work")
             pixels = project_alt(d3.select(this).property("lng"), d3.select(this).property("lat"))
             coords = unproject(pixels.x + event.dx, pixels.y + event.dy)
             d3.select(this)
@@ -172,7 +173,10 @@ d3.dsv(",", "asst3_yelp.csv", function(d){
                 .property("lng", coords.lng)
                 .property("lat", coords.lat)
                 .attr("d", d3.geoPath()(generate_circle(coords.lng, coords.lat, d3.select(this).property("dist"))))
+            console.timeEnd("light work")
+            console.time("update center")
             update_centers();
+            console.timeEnd("update center")
             update_intersection();
         })
         .on("end", function(){
@@ -311,7 +315,7 @@ function filter_handler() {
     // if only search term provided, update visibility based on that
     if (content.length > 0 && !(category || ratings || price)) {
         opacity = Math.min(Math.max((1 / Math.sqrt(data.length)) * 5 + 0.05, 0.2), 1)
-        dots.style("visible", d => data.includes(d)).attr("opacity", opacity)
+        dots.attr("visible", d => data.includes(d)).attr("opacity", opacity)
     }
 
     // if nothing is populated repopulate everything
@@ -378,6 +382,9 @@ function update_intersection() {
     dots.attr("highlighted", null)
     console.time("find shops")
 
+    console.time("what the heck")
+    // compact = data.map(d => d.alias)
+    // status_full = (data.length == output_data.length)
     dots.filter(d => {
             if (data.includes(d)){
                 if (bounds[1][0] <= d.coordinates[0] && d.coordinates[0] <= bounds[0][0] && 
@@ -397,6 +404,7 @@ function update_intersection() {
             }
         })
         .attr("highlighted", "")
+    console.timeEnd("what the heck")
 
     content = d3.select("#search-box").property("value")
     if (content.length == 0) {
@@ -411,6 +419,7 @@ function update_intersection() {
     // console.log(highlighted_data)
 
     console.timeEnd("find shops")
+    console.log("")
 
     d3.select("#shop-results")
         .selectAll("div")
